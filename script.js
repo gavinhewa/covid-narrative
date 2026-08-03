@@ -58,11 +58,17 @@ Promise.all([
 function renderScene() {
     svg.selectAll("*").remove();
 
+    // Select and update the narrative caption container
+    const captionBox = d3.select("#narrative-caption");
+
     if (currentScene === "overview") {
+        captionBox.html("<strong>Overview:</strong> This map displays the cumulative geographic spread of COVID-19 cases across U.S. states. Darker shades of red represent higher case volumes.");
         drawOverview();
     } else if (currentScene === "cases") {
+        captionBox.html("<strong>Deep Dive:</strong> Looking closer at the top 10 states by total cases. Populous states like California and Texas lead the count significantly.");
         drawCases();
     } else if (currentScene === "deaths") {
+        captionBox.html("<strong>Impact Analysis:</strong> Examining the top 10 states by total deaths reveals how case volume correlates with mortality outcomes.");
         drawDeaths();
     }
 }
@@ -156,6 +162,18 @@ function drawCases() {
         .on("mouseout", function() {
             tooltip.style("visibility", "hidden");
         });
+
+    // Inside drawCases(), after drawing bars:
+    const topState = top10Cases[0];
+
+    chartGroup.append("text")
+        .attr("x", xScale(topState.cases) - 10)
+        .attr("y", yScale(topState.state) + (yScale.bandwidth() / 2))
+        .attr("dy", "0.35em")
+        .attr("text-anchor", "end")
+        .attr("fill", "white")
+        .attr("font-weight", "bold")
+        .text(`Highest: ${topState.state}`);
 
     // Axes
     chartGroup.append("g")
