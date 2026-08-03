@@ -62,7 +62,7 @@ function renderScene() {
     const captionBox = d3.select("#narrative-caption");
 
     if (currentScene === "overview") {
-        captionBox.html("<strong>Overview:</strong> This map displays the cumulative geographic spread of COVID-19 cases across U.S. states. Darker shades of red represent higher case volumes.");
+        captionBox.html("<strong>Overview:</strong> This map displays the cumulative geographic spread of COVID-19 cases across U.S. states. Darker shades of red represent higher case volumes. Hover over a state to see its total number of cases ");
         drawOverview();
     } else if (currentScene === "cases") {
         captionBox.html("<strong>Deep Dive:</strong> Looking closer at the top 10 states by total cases. Populous states like California and Texas lead the count significantly.");
