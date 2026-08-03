@@ -6,6 +6,17 @@ let colorScale;
 const svg = d3.select("#chart");
 let currentScene = "overview";
 
+// Create a single persistent tooltip element on the body
+const tooltip = d3.select("body")
+    .append("div")
+    .style("position", "absolute")
+    .style("visibility", "hidden")
+    .style("background", "white")
+    .style("padding", "10px")
+    .style("border", "1px solid black")
+    .style("border-radius", "4px")
+    .style("pointer-events", "none"); // Prevents tooltip from interfering with mouse events
+
 // 1. Load data asynchronously
 Promise.all([
     d3.csv("data/covid.csv"),
@@ -28,23 +39,14 @@ Promise.all([
         .domain([0, maxCases])
         .interpolator(d3.interpolateReds);
 
-    const cases = {};
-
-    covidData.forEach(function(d){
-
-        cases[d.State]=+d.Cases;
-
-    });
-
     const states = Object.entries(latestData).map(([state, values]) => ({
         state,
         cases: values.cases,
         deaths: values.deaths
     }));
 
-    states.sort((a,b) => b.cases - a.cases);
-
-    const top10 = states.slice(0,10);
+    states.sort((a, b) => b.cases - a.cases);
+    const top10 = states.slice(0, 10);
 
     // 4. Initial render once everything is ready
     renderScene();
@@ -73,43 +75,34 @@ function drawOverview() {
 
     const path = d3.geoPath(projection);
 
-    const tooltip = d3.select("body")
-        .append("div")
-        .style("position","absolute")
-        .style("visibility","hidden")
-        .style("background","white")
-        .style("padding","10px")
-        .style("border","1px solid black");
-
     svg.selectAll("path")
         .data(states.features)
         .enter()
         .append("path")
         .attr("d", path)
         .attr("fill", function(d) {
-            // Match state name/properties safely
             const stateName = d.properties.name;
             const stateRecord = latestData[stateName];
-            
-            // Fallback color if state data is missing
             return stateRecord ? colorScale(stateRecord.cases) : "#ccc";
         })
         .attr("stroke", "white")
-        .on("mouseover",function(event,d){
+        .on("mouseover", function(event, d) {
+            const stateName = d.properties.name;
+            const stateRecord = latestData[stateName];
+            const casesCount = stateRecord ? stateRecord.cases : "N/A";
 
-        tooltip
-            .style("visibility","visible")
-            .html(
-
-                d.properties.name +
-
-                "<br>Cases: " +
-
-                cases[d.properties.name]
-
-            );
-
-})
+            tooltip
+                .style("visibility", "visible")
+                .html(`<strong>${stateName}</strong><br>Cases: ${casesCount}`);
+        })
+        .on("mousemove", function(event) {
+            tooltip
+                .style("top", (event.pageY - 10) + "px")
+                .style("left", (event.pageX + 10) + "px");
+        })
+        .on("mouseout", function() {
+            tooltip.style("visibility", "hidden");
+        });
 }
 
 function drawCases() {
