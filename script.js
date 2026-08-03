@@ -28,6 +28,16 @@ Promise.all([
         .domain([0, maxCases])
         .interpolator(d3.interpolateReds);
 
+    const states = Object.entries(latestData).map(([state, values]) => ({
+        state,
+        cases: values.cases,
+        deaths: values.deaths
+    }));
+
+    states.sort((a,b) => b.cases - a.cases);
+
+    const top10 = states.slice(0,10);
+
     // 4. Initial render once everything is ready
     renderScene();
 });
@@ -55,6 +65,14 @@ function drawOverview() {
 
     const path = d3.geoPath(projection);
 
+    const tooltip = d3.select("body")
+        .append("div")
+        .style("position","absolute")
+        .style("visibility","hidden")
+        .style("background","white")
+        .style("padding","10px")
+        .style("border","1px solid black");
+
     svg.selectAll("path")
         .data(states.features)
         .enter()
@@ -68,7 +86,22 @@ function drawOverview() {
             // Fallback color if state data is missing
             return stateRecord ? colorScale(stateRecord.cases) : "#ccc";
         })
-        .attr("stroke", "white");
+        .attr("stroke", "white")
+        .on("mouseover",function(event,d){
+
+        tooltip
+            .style("visibility","visible")
+            .html(
+
+                d.properties.name +
+
+                "<br>Cases: " +
+
+                cases[d.properties.name]
+
+            );
+
+})
 }
 
 function drawCases() {
