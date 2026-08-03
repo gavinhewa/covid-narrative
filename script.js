@@ -162,6 +162,8 @@ function drawOverview() {
             tooltip.style("visibility", "hidden");
         });
 
+    // --- STATIC TEMPLATE ANNOTATION FOR OVERVIEW ---
+    // Find California (or another state feature) to anchor the annotation
     const targetStateFeature = states.features.find(d => d.properties.name === "California");
     
     if (targetStateFeature) {
@@ -215,41 +217,13 @@ function drawCases() {
         .attr("x", 0)
         .attr("height", yScale.bandwidth())
         .attr("width", d => xScale(d.cases))
-        .attr("fill", "#d95f0e")
-        .on("mouseover", function(event, d) {
-            tooltip
-                .style("visibility", "visible")
-                .html(`<strong>${d.state}</strong><br>Cases: ${d.cases.toLocaleString()}`);
-        })
-        .on("mousemove", function(event) {
-            tooltip
-                .style("top", (event.pageY - 10) + "px")
-                .style("left", (event.pageX + 10) + "px");
-        })
-        .on("mouseout", function() {
-            tooltip.style("visibility", "hidden");
-        });
-
-    // Inside drawCases(), after drawing bars:
-    const topState = top10Cases[0];
-
-    chartGroup.append("text")
-        .attr("x", xScale(topState.cases) - 10)
-        .attr("y", yScale(topState.state) + (yScale.bandwidth() / 2))
-        .attr("dy", "0.35em")
-        .attr("text-anchor", "end")
-        .attr("fill", "white")
-        .attr("font-weight", "bold")
-        .text(`Highest: ${topState.state}`);
+        .attr("fill", "#d95f0e");
 
     // Axes
-    chartGroup.append("g")
-        .call(d3.axisLeft(yScale));
+    chartGroup.append("g").call(d3.axisLeft(yScale));
+    chartGroup.append("g").attr("transform", `translate(0, ${height})`).call(d3.axisBottom(xScale).ticks(5));
 
-    chartGroup.append("g")
-        .attr("transform", `translate(0, ${height})`)
-        .call(d3.axisBottom(xScale).ticks(5));
-
+    // --- STATIC TEMPLATE ANNOTATION ---
     const topState = top10Cases[0]; // e.g., California
     const targetX = xScale(topState.cases);
     const targetY = yScale(topState.state) + (yScale.bandwidth() / 2);
@@ -298,29 +272,13 @@ function drawDeaths() {
         .attr("x", 0)
         .attr("height", yScale.bandwidth())
         .attr("width", d => xScale(d.deaths))
-        .attr("fill", "#ae017e")
-        .on("mouseover", function(event, d) {
-            tooltip
-                .style("visibility", "visible")
-                .html(`<strong>${d.state}</strong><br>Deaths: ${d.deaths.toLocaleString()}`);
-        })
-        .on("mousemove", function(event) {
-            tooltip
-                .style("top", (event.pageY - 10) + "px")
-                .style("left", (event.pageX + 10) + "px");
-        })
-        .on("mouseout", function() {
-            tooltip.style("visibility", "hidden");
-        });
+        .attr("fill", "#ae017e");
 
     // Axes
-    chartGroup.append("g")
-        .call(d3.axisLeft(yScale));
+    chartGroup.append("g").call(d3.axisLeft(yScale));
+    chartGroup.append("g").attr("transform", `translate(0, ${height})`).call(d3.axisBottom(xScale).ticks(5));
 
-    chartGroup.append("g")
-        .attr("transform", `translate(0, ${height})`)
-        .call(d3.axisBottom(xScale).ticks(5));
-    
+    // --- STATIC TEMPLATE ANNOTATION FOR DEATHS ---
     const topDeathState = top10Deaths[0]; // e.g., California or New York depending on dataset
     const targetX = xScale(topDeathState.deaths);
     const targetY = yScale(topDeathState.state) + (yScale.bandwidth() / 2);
