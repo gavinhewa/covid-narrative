@@ -1,66 +1,57 @@
 let covidData;
 let usData;
-
-Promise.all([
-
-    d3.csv("data/covid.csv"),
-
-    d3.json("data/us-states.json")
-
-]).then(function(data){
-
-    covidData=data[0];
-
-    usData=data[1];
-
-    renderScene();
-
-});
-
-const latestData = {};
-
-data.forEach(function(d){
-
-    latestData[d.state] = {
-        cases: +d.cases,
-        deaths: +d.deaths
-    };
-
-});
+let latestData = {};
+let colorScale;
 
 const svg = d3.select("#chart");
-
 let currentScene = "overview";
 
-renderScene();
+// 1. Load data asynchronously
+Promise.all([
+    d3.csv("data/covid.csv"),
+    d3.json("data/us-states.json")
+]).then(function(files) {
+    covidData = files[0];
+    usData = files[1];
 
-function renderScene(){
+    // 2. Process covidData into latestData lookup map
+    covidData.forEach(function(d) {
+        latestData[d.state] = {
+            cases: +d.cases,
+            deaths: +d.deaths
+        };
+    });
 
+    // 3. Define a color scale now that data is loaded & max values are known
+    const maxCases = d3.max(covidData, d => +d.cases) || 1000;
+    colorScale = d3.scaleSequential()
+        .domain([0, maxCases])
+        .interpolator(d3.interpolateReds);
+
+    // 4. Initial render once everything is ready
+    renderScene();
+});
+
+function renderScene() {
     svg.selectAll("*").remove();
 
-    if(currentScene==="overview"){
+    if (currentScene === "overview") {
         drawOverview();
-    }
-
-    if(currentScene==="cases"){
+    } else if (currentScene === "cases") {
         drawCases();
-    }
-
-    if(currentScene==="deaths"){
+    } else if (currentScene === "deaths") {
         drawDeaths();
     }
-
 }
 
-function drawOverview(){
-
+function drawOverview() {
     const states = topojson.feature(
         usData,
         usData.objects.states
     );
 
     const projection = d3.geoAlbersUsa()
-        .fitSize([1000,650],states);
+        .fitSize([1000, 650], states);
 
     const path = d3.geoPath(projection);
 
@@ -68,61 +59,46 @@ function drawOverview(){
         .data(states.features)
         .enter()
         .append("path")
-        .attr("d",path)
-        .attr("fill", function(d){
-
-            return colorScale(
-                latestData[d.properties.name].cases
-            );
-
+        .attr("d", path)
+        .attr("fill", function(d) {
+            // Match state name/properties safely
+            const stateName = d.properties.name;
+            const stateRecord = latestData[stateName];
+            
+            // Fallback color if state data is missing
+            return stateRecord ? colorScale(stateRecord.cases) : "#ccc";
         })
-        .attr("stroke","white");
-
+        .attr("stroke", "white");
 }
 
-function drawCases(){
-
+function drawCases() {
     svg.append("text")
-        .attr("x",350)
-        .attr("y",100)
-        .attr("font-size",30)
+        .attr("x", 350)
+        .attr("y", 100)
+        .attr("font-size", 30)
         .text("Cases Scene");
-
 }
 
-function drawDeaths(){
-
+function drawDeaths() {
     svg.append("text")
-        .attr("x",350)
-        .attr("y",100)
-        .attr("font-size",30)
+        .attr("x", 350)
+        .attr("y", 100)
+        .attr("font-size", 30)
         .text("Deaths Scene");
-
 }
 
-d3.select("#overviewBtn")
-    .on("click", function(){
+// Event Listeners for Navigation Buttons
+d3.select("#overviewBtn").on("click", function() {
+    currentScene = "overview";
+    renderScene();
+});
 
-        currentScene="overview";
+d3.select("#casesBtn").on("click", function() {
+    currentScene = "cases";
+    renderScene();
+});
 
-        renderScene();
-
-    });
-
-d3.select("#casesBtn")
-    .on("click", function(){
-
-        currentScene="cases";
-
-        renderScene();
-
-    });
-
-d3.select("#deathsBtn")
-    .on("click", function(){
-
-        currentScene="deaths";
-
-        renderScene();
-
-    });
+d3.select("#deathsBtn").on("click", function() {
+    currentScene = "deaths";
+    renderScene();
+});
