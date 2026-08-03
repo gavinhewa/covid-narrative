@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>COVID-19 Narrative Visualization</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://unpkg.com/topojson-client@3"></script>
+    <script src="https://unpkg.com/d3-svg-annotation@2.5.1/d3-annotation.min.js"></script>
+</head>
+
+<body>
+
+    <h1>COVID-19 Across the United States</h1>
+
+    <p id="description">
+        Explore how COVID-19 impacted the United States through interactive visualizations.
+    </p>
+
+    <div id="buttons">
+        <button id="overviewBtn">Overview</button>
+        <button id="casesBtn">Cases</button>
+        <button id="deathsBtn">Deaths</button>
+    </div>
+
+    <svg id="chart" width="1000" height="650"></svg>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
