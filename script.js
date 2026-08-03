@@ -28,6 +28,14 @@ Promise.all([
         .domain([0, maxCases])
         .interpolator(d3.interpolateReds);
 
+    const cases = {};
+
+    covidData.forEach(function(d){
+
+        cases[d.State]=+d.Cases;
+
+    });
+
     const states = Object.entries(latestData).map(([state, values]) => ({
         state,
         cases: values.cases,
