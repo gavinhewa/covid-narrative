@@ -73,6 +73,55 @@ function renderScene() {
     }
 }
 
+function drawAnnotation(group, x, y, title, subtitle, alignRight = false) {
+    const boxWidth = 220;
+    const boxHeight = 55;
+    // Adjust x position if aligning to the right of a data point
+    const boxX = alignRight ? x + 15 : x - boxWidth - 15;
+    const boxY = y - (boxHeight / 2);
+
+    const annoGroup = group.append("g")
+        .attr("class", "annotation-group");
+
+    // Connecting line from data point to annotation box
+    annoGroup.append("line")
+        .attr("x1", x)
+        .attr("y1", y)
+        .attr("x2", alignRight ? boxX : boxX + boxWidth)
+        .attr("y2", boxY + (boxHeight / 2))
+        .attr("stroke", "#333")
+        .attr("stroke-width", 1.5)
+        .attr("stroke-dasharray", "2,2");
+
+    // Background card for scannability
+    annoGroup.append("rect")
+        .attr("x", boxX)
+        .attr("y", boxY)
+        .attr("width", boxWidth)
+        .attr("height", boxHeight)
+        .attr("fill", "white")
+        .attr("stroke", "#333")
+        .attr("stroke-width", 1)
+        .attr("rx", 4);
+
+    // Title text (Bold, key messaging point)
+    annoGroup.append("text")
+        .attr("x", boxX + 12)
+        .attr("y", boxY + 20)
+        .attr("font-size", "12px")
+        .attr("font-weight", "bold")
+        .attr("fill", "#111")
+        .text(title);
+
+    // Subtitle text (Context/Data detail)
+    annoGroup.append("text")
+        .attr("x", boxX + 12)
+        .attr("y", boxY + 38)
+        .attr("font-size", "11px")
+        .attr("fill", "#555")
+        .text(subtitle);
+}
+
 function drawOverview() {
     const states = topojson.feature(
         usData,
@@ -112,7 +161,25 @@ function drawOverview() {
         .on("mouseout", function() {
             tooltip.style("visibility", "hidden");
         });
+
+    const targetStateFeature = states.features.find(d => d.properties.name === "California");
+    
+    if (targetStateFeature) {
+        const centroid = path.centroid(targetStateFeature); // [x, y] pixel coordinates
+        const topStateData = latestData["California"];
+
+        drawAnnotation(
+            svg, // Pass main svg since map isn't inside a translated chartGroup
+            centroid[0], 
+            centroid[1], 
+            "Geographic Hotspot", 
+            `California shows the highest overall case spread`, 
+            true // Position box to the right of the point
+        );
+    }
 }
+
+
 
 function drawCases() {
     const margin = {top: 60, right: 40, bottom: 40, left: 120};
@@ -182,6 +249,19 @@ function drawCases() {
     chartGroup.append("g")
         .attr("transform", `translate(0, ${height})`)
         .call(d3.axisBottom(xScale).ticks(5));
+
+    const topState = top10Cases[0]; // e.g., California
+    const targetX = xScale(topState.cases);
+    const targetY = yScale(topState.state) + (yScale.bandwidth() / 2);
+
+    drawAnnotation(
+        chartGroup, 
+        targetX, 
+        targetY, 
+        "Concentrated Burden", 
+        `${topState.state} leads with ${topState.cases.toLocaleString()} cases`, 
+        false // Position box to the left of the bar tip
+    );
 }
 
 function drawDeaths() {
@@ -240,6 +320,19 @@ function drawDeaths() {
     chartGroup.append("g")
         .attr("transform", `translate(0, ${height})`)
         .call(d3.axisBottom(xScale).ticks(5));
+    
+    const topDeathState = top10Deaths[0]; // e.g., California or New York depending on dataset
+    const targetX = xScale(topDeathState.deaths);
+    const targetY = yScale(topDeathState.state) + (yScale.bandwidth() / 2);
+
+    drawAnnotation(
+        chartGroup, 
+        targetX, 
+        targetY, 
+        "Severe Mortality Impact", 
+        `${topDeathState.state} leads with ${topDeathState.deaths.toLocaleString()} deaths`, 
+        false // Position box to the left of the bar tip
+    );
 }
 
 // Event Listeners for Navigation Buttons
