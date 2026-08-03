@@ -74,7 +74,7 @@ function renderScene() {
 }
 
 function drawAnnotation(group, x, y, title, subtitle, alignRight = false) {
-    const boxWidth = 220;
+    const boxWidth = 240; // Increased width to prevent text overflow
     const boxHeight = 55;
     // Adjust x position if aligning to the right of a data point
     const boxX = alignRight ? x + 15 : x - boxWidth - 15;
